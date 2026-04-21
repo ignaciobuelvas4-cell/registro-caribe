@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sistema de Registro - Colombia</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#08111E;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#EBF3FF;min-height:100vh;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:#08111E;}
+::-webkit-scrollbar-thumb{background:#1A3048;border-radius:3px;}
+input,select{background:#08111E;border:1.5px solid #1A3048;border-radius:8px;color:#EBF3FF;padding:10px 14px;width:100%;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;}
+input:focus,select:focus{border-color:#F5C830;}
+input::placeholder{color:#2A4A6A;}
+select option{background:#08111E;}
+input.err,select.err{border-color:#EF4444;}
+button{cursor:pointer;font-family:inherit;font-weight:700;font-size:14px;border-radius:8px;border:none;padding:10px 22px;transition:opacity .15s;}
+button:hover{opacity:.82;}
+.btn-gold{background:#F5C830;color:#08111E;}
+.btn-red{background:#C01929;color:#EBF3FF;}
+.btn-blue{background:#1747A0;color:#EBF3FF;}
+.btn-ghost{background:transparent;color:#EBF3FF;border:1.5px solid #1A3048!important;}
+.card{background:#0F1E30;border-radius:14px;border:1px solid #1A3048;padding:24px;margin-bottom:18px;}
+.card-title{display:flex;align-items:center;gap:8px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #1A3048;color:#F5C830;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+.label{color:#5A7A9A;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-bottom:5px;display:block;}
+.req{color:#EF4444;}
+.err-msg{color:#EF4444;font-size:12px;margin-top:4px;display:none;}
+.err-msg.show{display:block;}
+.alert{border-radius:10px;padding:12px 16px;font-size:13px;font-weight:500;margin-bottom:16px;display:none;}
+.alert.show{display:block;}
+.alert-ok{background:#061a0e;border:1.5px solid #22C55E;color:#22C55E;}
+.alert-er{background:#1f0505;border:1.5px solid #EF4444;color:#EF4444;}
+.alert-info{background:#1a1200;border:1.5px solid #F5C830;color:#F5C830;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:600px){.grid2{grid-template-columns:1fr;}}
+.field{display:flex;flex-direction:column;}
+#app{display:flex;min-height:100vh;}
+#sidebar{width:252px;background:#0F1E30;border-right:1px solid #1A3048;display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+#main{flex:1;overflow-y:auto;padding:32px 28px;max-height:100vh;}
+@media(max-width:700px){#sidebar{width:200px;}#main{padding:20px 14px;}}
+.nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:8px;background:transparent;color:#5A7A9A;border:1px solid transparent;cursor:pointer;font-size:14px;font-weight:400;margin-bottom:4px;text-align:left;font-family:inherit;transition:all .15s;}
+.nav-btn.active{background:rgba(245,200,48,.1);color:#F5C830;border-color:rgba(245,200,48,.33);}
+.flag-bar{display:flex;height:5px;border-radius:3px;overflow:hidden;margin-bottom:16px;}
+.flag-a{flex:2;background:#F5C830;}
+.flag-b{flex:1;background:#1747A0;}
+.flag-c{flex:1;background:#C01929;}
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#08111E;padding:16px;}
+.login-box{width:100%;max-width:420px;}
+table{border-collapse:collapse;width:100%;}
+th{background:#0B1929;color:#5A7A9A;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:11px 14px;text-align:left;border-bottom:1px solid #1A3048;white-space:nowrap;}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid #1A3048;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#0B1929;}
+.badge{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
+.badge-cc{background:rgba(23,71,160,.27);color:#60A5FA;}
+.badge-ti{background:rgba(245,200,48,.13);color:#F5C830;}
+.badge-admin{background:rgba(245,200,48,.13);color:#F5C830;}
+.badge-op{background:rgba(23,71,160,.13);color:#60A5FA;}
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid #1A3048;}
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;align-items:center;justify-content:center;padding:16px;}
+#modal.show{display:flex;}
+.modal-box{background:#0F1E30;border-radius:14px;border:1px solid #1A3048;padding:24px;max-width:380px;width:100%;text-align:center;}
+.loader{color:#5A7A9A;font-size:14px;padding:8px 0;display:none;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;animation:spin 1s linear infinite;}
+.view{display:none;}
+.view.active{display:block;}
+input[disabled],select[disabled]{opacity:.55;cursor:not-allowed;}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="flag-bar"><div class="flag-a"></div><div class="flag-b"></div><div class="flag-c"></div></div>
+    <div class="card">
+      <div style="text-align:center;margin-bottom:32px;">
+        <div style="font-size:56px;margin-bottom:12px;">🏛️</div>
+        <h1 style="font-size:22px;font-weight:700;margin-bottom:4px;">Sistema de Registro</h1>
+        <p style="color:#5A7A9A;font-size:14px;">República de Colombia</p>
+      </div>
+      <div class="field" style="margin-bottom:16px;">
+        <label class="label">Usuario <span class="req">*</span></label>
+        <input type="text" id="l-user" placeholder="Nombre de usuario" onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <div class="field" style="margin-bottom:16px;">
+        <label class="label">Contraseña <span class="req">*</span></label>
+        <input type="password" id="l-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <div class="alert alert-er" id="l-err"></div>
+      <button class="btn-gold" style="width:100%;padding:13px;font-size:15px;" onclick="doLogin()">Ingresar al Sistema →</button>
+    </div>
+    <p style="text-align:center;color:#5A7A9A;font-size:12px;margin-top:16px;">Sincronizado con Google Sheets · © 2025</p>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+  <div id="modal">
+    <div class="modal-box">
+      <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:8px;">¿Eliminar usuario?</h3>
+      <p style="color:#5A7A9A;font-size:14px;margin-bottom:24px;">Esta acción no se puede deshacer.</p>
+      <div style="display:flex;gap:12px;">
+        <button class="btn-ghost" style="flex:1;" onclick="closeModal()">Cancelar</button>
+        <button class="btn-red" style="flex:1;" onclick="confirmDel()">Sí, eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="sidebar">
+    <div style="padding:24px 20px 16px;">
+      <div class="flag-bar"><div class="flag-a"></div><div class="flag-b"></div><div class="flag-c"></div></div>
+      <div style="font-size:14px;font-weight:700;">Sistema de Registro</div>
+      <div style="font-size:11px;color:#5A7A9A;margin-top:2px;">República de Colombia</div>
+    </div>
+    <nav style="flex:1;padding:8px 12px;" id="nav"></nav>
+    <div style="padding:16px 20px;border-top:1px solid #1A3048;">
+      <div style="font-size:11px;color:#5A7A9A;margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px;">Sesión activa</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px;" id="me-name"></div>
+      <span id="me-role-badge" style="display:inline-block;font-size:11px;padding:3px 10px;border-radius:20px;margin-bottom:14px;font-weight:600;"></span><br/>
+      <button class="btn-ghost" style="width:100%;font-size:13px;padding:8px;" onclick="logout()">Cerrar Sesión</button>
+    </div>
+  </div>
+
+  <div id="main">
+    <!-- REGISTRO -->
+    <div id="v-reg" class="view">
+      <div style="margin-bottom:24px;">
+        <h1 style="font-size:24px;font-weight:700;margin-bottom:4px;">📝 Registrar Persona</h1>
+        <p style="color:#5A7A9A;font-size:13px;">Todos los campos con <span class="req">*</span> son obligatorios.</p>
+      </div>
+      <div class="alert alert-ok" id="r-ok"></div>
+      <div class="alert alert-er" id="r-er"></div>
+      <div class="alert alert-info" id="r-info"></div>
+      <div class="card">
+        <div class="card-title"><span>📄</span> Documento de Identidad</div>
+        <div class="grid2">
+          <div class="field">
+            <label class="label">Tipo de Documento <span class="req">*</span></label>
+            <select id="f-tipodoc">
+              <option value="cedula">Cédula de Ciudadanía</option>
+              <option value="ti">Tarjeta de Identidad</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="label">Número de Documento <span class="req">*</span></label>
+            <input type="text" id="f-numerodoc" inputmode="numeric" placeholder="Solo dígitos" oninput="this.value=this.value.replace(/\D/g,'')" onblur="autoFill('numerodoc',this.value)"/>
+            <div class="err-msg" id="e-numerodoc"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>👤</span> Datos Personales</div>
+        <div class="grid2">
+          <div class="field">
+            <label class="label">Nombres <span class="req">*</span></label>
+            <input type="text" id="f-nombres" placeholder="Nombres completos" onblur="autoFill('nombres',this.value)"/>
+            <div class="err-msg" id="e-nombres"></div>
+          </div>
+          <div class="field">
+            <label class="label">Apellidos <span class="req">*</span></label>
+            <input type="text" id="f-apellidos" placeholder="Apellidos completos" onblur="autoFill('apellidos',this.value)"/>
+            <div class="err-msg" id="e-apellidos"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>📍</span> Lugar de Residencia</div>
+        <div class="grid2" style="margin-bottom:16px;">
+          <div class="field">
+            <label class="label">Departamento <span class="req">*</span></label>
+            <select id="f-departamento" onchange="onDeptChange()">
+              <option value="">— Seleccionar departamento —</option>
+            </select>
+            <div class="err-msg" id="e-departamento"></div>
+          </div>
+          <div class="field">
+            <label class="label">Municipio <span class="req">*</span></label>
+            <select id="f-municipio" disabled>
+              <option value="">— Seleccionar municipio —</option>
+            </select>
+            <div class="err-msg" id="e-municipio"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Dirección <span class="req">*</span></label>
+          <input type="text" id="f-direccion" placeholder="Ej: Carrera 10 # 5-23, Barrio El Centro"/>
+          <div class="err-msg" id="e-direccion"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>📞</span> Contacto</div>
+        <div class="grid2">
+          <div class="field">
+            <label class="label">Teléfono <span class="req">*</span></label>
+            <input type="text" id="f-telefono" inputmode="numeric" placeholder="10 dígitos" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')"/>
+            <div class="err-msg" id="e-telefono"></div>
+          </div>
+          <div class="field">
+            <label class="label">Correo Electrónico <span class="req">*</span></label>
+            <input type="email" id="f-correo" placeholder="ejemplo@correo.com"/>
+            <div class="err-msg" id="e-correo"></div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+        <button class="btn-gold" style="padding:12px 36px;font-size:15px;" onclick="doReg()">💾 Guardar Registro</button>
+        <button class="btn-ghost" onclick="clearForm()">↺ Limpiar</button>
+        <div class="loader" id="r-loading"><span class="spin">⏳</span> Guardando...</div>
+      </div>
+    </div>
+
+    <!-- PLANILLA -->
+    <div id="v-planilla" class="view">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h1 style="font-size:24px;font-weight:700;margin-bottom:4px;">📋 Planilla de Registros</h1>
+          <p style="color:#5A7A9A;font-size:13px;" id="p-count">Cargando...</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn-ghost" style="font-size:13px;" onclick="loadPersons()">🔄 Actualizar</button>
+          <button class="btn-gold" id="btn-export" onclick="exportCSV()">⬇ Exportar .csv</button>
+        </div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <input type="text" id="p-search" placeholder="🔍 Buscar nombre, documento, correo..." style="max-width:420px;margin-bottom:16px;" oninput="renderTable()"/>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Doc</th><th>Número</th><th>Nombres</th><th>Apellidos</th><th>Departamento</th><th>Municipio</th><th>Dirección</th><th>Teléfono</th><th>Correo</th><th>Fecha</th></tr></thead>
+            <tbody id="p-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- USUARIOS -->
+    <div id="v-users" class="view">
+      <div style="margin-bottom:24px;">
+        <h1 style="font-size:24px;font-weight:700;margin-bottom:4px;">👥 Gestión de Usuarios</h1>
+        <p style="color:#5A7A9A;font-size:13px;">Solo administradores pueden crear usuarios.</p>
+      </div>
+      <div class="alert alert-ok" id="u-ok"></div>
+      <div class="alert alert-er" id="u-er"></div>
+      <div class="card">
+        <div class="card-title"><span>➕</span> Crear Nuevo Usuario</div>
+        <div class="grid2" style="margin-bottom:16px;">
+          <div class="field">
+            <label class="label">Nombre Completo <span class="req">*</span></label>
+            <input type="text" id="nu-nombre" placeholder="Nombre del usuario"/>
+          </div>
+          <div class="field">
+            <label class="label">Usuario de Acceso <span class="req">*</span></label>
+            <input type="text" id="nu-user" placeholder="login único"/>
+          </div>
+          <div class="field">
+            <label class="label">Contraseña <span class="req">*</span></label>
+            <input type="password" id="nu-pass" placeholder="Mínimo 6 caracteres"/>
+          </div>
+          <div class="field">
+            <label class="label">Rol <span class="req">*</span></label>
+            <select id="nu-role">
+              <option value="operator">Operador — solo registra personas</option>
+              <option value="admin">Administrador — acceso total</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <button class="btn-gold" onclick="addUser()">➕ Crear Usuario</button>
+          <div class="loader" id="u-loading"><span class="spin">⏳</span> Creando...</div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;" class="card-title">
+          <span>👥 Usuarios del Sistema</span>
+          <button class="btn-ghost" style="font-size:12px;padding:6px 12px;" onclick="loadUsers()">🔄</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th style="text-align:center;">Acción</th></tr></thead>
+            <tbody id="u-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERFIL -->
+    <div id="v-profile" class="view">
+      <div style="margin-bottom:24px;">
+        <h1 style="font-size:24px;font-weight:700;margin-bottom:4px;">⚙️ Mi Perfil</h1>
+        <p style="color:#5A7A9A;font-size:13px;">Actualice su información y contraseña.</p>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>👤</span> Información de Cuenta</div>
+        <div class="alert alert-ok" id="pr-ok"></div>
+        <div class="alert alert-er" id="pr-er"></div>
+        <div class="field" style="margin-bottom:14px;">
+          <label class="label">Nombre Completo</label>
+          <input type="text" id="pr-nombre"/>
+        </div>
+        <div class="field" style="margin-bottom:14px;">
+          <label class="label">Usuario de Acceso</label>
+          <input type="text" id="pr-user"/>
+        </div>
+        <div style="background:#0B1929;border-radius:8px;padding:10px 14px;font-size:13px;color:#5A7A9A;margin-bottom:18px;">
+          Rol: <strong id="pr-role-txt"></strong>
+        </div>
+        <button class="btn-blue" onclick="updProfile()">💾 Actualizar Perfil</button>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>🔒</span> Cambiar Contraseña</div>
+        <div class="alert alert-ok" id="pw-ok"></div>
+        <div class="alert alert-er" id="pw-er"></div>
+        <div class="field" style="margin-bottom:14px;">
+          <label class="label">Contraseña actual</label>
+          <input type="password" id="pw-cur" placeholder="Contraseña actual"/>
+        </div>
+        <div class="field" style="margin-bottom:14px;">
+          <label class="label">Nueva contraseña</label>
+          <input type="password" id="pw-n1" placeholder="Mínimo 6 caracteres"/>
+        </div>
+        <div class="field" style="margin-bottom:18px;">
+          <label class="label">Confirmar nueva contraseña</label>
+          <input type="password" id="pw-n2" placeholder="Repita la nueva contraseña"/>
+        </div>
+        <button class="btn-red" onclick="changePw()">🔑 Cambiar Contraseña</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API="https://script.google.com/macros/s/AKfycbymnDAHu1E9CXUWPX6wx02vz0HDw2a4OxAgieHsYs-L2cU_PWaxy9d-LGPSMB60vH3l/exec";
+const COLOMBIA={"Amazonas":["El Encanto","La Chorrera","La Pedrera","La Victoria","Leticia","Mirití-Paraná","Puerto Alegría","Puerto Arica","Puerto Nariño","Puerto Santander","Tarapacá"],"Antioquia":["Abejorral","Abriaquí","Alejandría","Amagá","Amalfi","Andes","Angelópolis","Angostura","Anorí","Anzá","Apartadó","Arboletes","Argelia","Armenia","Barbosa","Belmira","Bello","Betania","Betulia","Briceño","Buriticá","Cáceres","Caicedo","Caldas","Campamento","Cañasgordas","Caracolí","Caramanta","Carepa","Carolina del Príncipe","Caucasia","Chigorodó","Cisneros","Cocorná","Concepción","Concordia","Copacabana","Dabeiba","Donmatías","Ebéjico","El Bagre","El Carmen de Viboral","El Santuario","Entrerríos","Envigado","Fredonia","Frontino","Giraldo","Girardota","Gómez Plata","Granada","Guadalupe","Guarne","Guatapé","Heliconia","Hispania","Itagüí","Ituango","Jardín","Jericó","La Ceja","La Estrella","La Pintada","La Unión","Liborina","Maceo","Marinilla","Medellín","Montebello","Murindó","Mutatá","Nariño","Nechí","Necoclí","Olaya","Peñol","Peque","Pueblorrico","Puerto Berrío","Puerto Nare","Puerto Triunfo","Remedios","Retiro","Rionegro","Sabanalarga","Sabaneta","Salgar","San Andrés de Cuerquia","San Carlos","San Francisco","San Jerónimo","San José de la Montaña","San Juan de Urabá","San Luis","San Pedro de los Milagros","San Pedro de Urabá","San Rafael","San Roque","San Vicente","Santa Bárbara","Santa Fe de Antioquia","Santa Rosa de Osos","Santo Domingo","Segovia","Sonsón","Sopetrán","Támesis","Tarazá","Tarso","Titiribí","Toledo","Turbo","Uramita","Urrao","Valdivia","Valparaíso","Vegachí","Venecia","Vigía del Fuerte","Yalí","Yarumal","Yolombó","Yondó","Zaragoza"],"Atlántico":["Baranoa","Barranquilla","Campo de la Cruz","Candelaria","Galapa","Juan de Acosta","Luruaco","Malambo","Manatí","Palmar de Varela","Piojó","Polonuevo","Ponedera","Puerto Colombia","Repelón","Sabanagrande","Sabanalarga","Santa Lucía","Santo Tomás","Soledad","Suan","Tubará","Usiacurí"],"Bogotá D.C.":["Bogotá D.C."],"Bolívar":["Achí","Altos del Rosario","Arenal","Arjona","Arroyohondo","Barranco de Loba","Calamar","Cantagallo","Cartagena","Cicuco","Clemencia","Córdoba","El Carmen de Bolívar","El Guamo","El Peñón","Hatillo de Loba","Magangué","Mahates","Margarita","María la Baja","Mompós","Montecristo","Morales","Norosí","Pinillos","Regidor","Río Viejo","San Cristóbal","San Estanislao","San Fernando","San Jacinto","San Jacinto del Cauca","San Juan Nepomuceno","San Martín de Loba","San Pablo","Santa Catalina","Santa Rosa","Santa Rosa del Sur","Simití","Soplaviento","Talaigua Nuevo","Tiquisio","Turbaco","Turbaná","Villanueva","Zambrano"],"Boyacá":["Almeida","Aquitania","Arcabuco","Belén","Berbeo","Betéitiva","Boavita","Boyacá","Briceño","Buenavista","Busbanzá","Caldas","Campohermoso","Cerinza","Chinavita","Chiquinquirá","Chíquiza","Chiscas","Chita","Chitaraque","Chivatá","Chivor","Ciénega","Cómbita","Coper","Corrales","Covarachía","Cubará","Cucaita","Cuítiva","Duitama","El Cocuy","El Espino","Firavitoba","Floresta","Gachantivá","Gámeza","Garagoa","Guacamayas","Guateque","Guayatá","Güicán","Iza","Jenesano","Jericó","La Capilla","La Uvita","La Victoria","Labranzagrande","Leyva","Macanal","Maripí","Miraflores","Mongua","Monguí","Moniquirá","Motavita","Muzo","Nobsa","Nuevo Colón","Oicatá","Otanche","Pachavita","Páez","Paipa","Pajarito","Panqueba","Pauna","Paya","Paz de Río","Pesca","Pisba","Puerto Boyacá","Quípama","Ramiriquí","Ráquira","Rondón","Saboyá","Sáchica","Samacá","San Eduardo","San José de Pare","San Luis de Gaceno","San Mateo","San Miguel de Sema","San Pablo de Borbur","Santa María","Santa Rosa de Viterbo","Santa Sofía","Santana","Sativanorte","Sativasur","Siachoque","Soatá","Socotá","Socha","Sogamoso","Somondoco","Sora","Soracá","Sotaquirá","Susacón","Sutamarchán","Sutatenza","Tasco","Tenza","Tibaná","Tibasosa","Tinjacá","Tipacoque","Toca","Togüí","Tópaga","Tota","Tunja","Turmequé","Tuta","Tutazá","Umbita","Ventaquemada","Viracachá","Zetaquira"],"Caldas":["Aguadas","Anserma","Aranzazu","Belalcázar","Chinchiná","Filadelfia","La Dorada","La Merced","Manizales","Manzanares","Marmato","Marquetalia","Marulanda","Neira","Norcasia","Pácora","Palestina","Pensilvania","Riosucio","Risaralda","Salamina","Samaná","San José","Supía","Victoria","Villamaría","Viterbo"],"Caquetá":["Albania","Belén de los Andaquíes","Cartagena del Chairá","Curillo","El Doncello","El Paujil","Florencia","La Montañita","Milán","Morelia","Puerto Rico","San José del Fragua","San Vicente del Caguán","Solano","Solita","Valparaíso"],"Casanare":["Aguazul","Chámeza","Hato Corozal","La Salina","Maní","Monterrey","Nunchía","Orocué","Paz de Ariporo","Pore","Recetor","Sabanalarga","Sácama","San Luis de Palenque","Támara","Tauramena","Trinidad","Villanueva","Yopal"],"Cauca":["Almaguer","Argelia","Balboa","Bolívar","Buenos Aires","Cajibío","Caldono","Caloto","Corinto","El Tambo","Florencia","Guachené","Guapi","Inzá","Jambaló","La Sierra","La Vega","López de Micay","Mercaderes","Miranda","Morales","Padilla","Páez","Patía","Piamonte","Piendamó","Popayán","Puerto Tejada","Puracé","Rosas","San Sebastián","Santa Rosa","Santander de Quilichao","Silvia","Sotara","Suárez","Sucre","Timbío","Timbiquí","Toribío","Totoró","Villa Rica"],"Cesar":["Aguachica","Agustín Codazzi","Astrea","Becerril","Bosconia","Chimichagua","Chiriguaná","Curumaní","El Copey","El Paso","Gamarra","González","La Gloria","La Jagua de Ibirico","La Paz","Manaure","Pailitas","Pelaya","Pueblo Bello","Río de Oro","San Alberto","San Diego","San Martín","Tamalameque","Valledupar"],"Chocó":["Acandí","Alto Baudó","Atrato","Bagadó","Bahía Solano","Bajo Baudó","Bojayá","Carmen del Darién","Cértegui","Condoto","El Carmen de Atrato","El Litoral del San Juan","Istmina","Juradó","Lloró","Medio Atrato","Medio Baudó","Medio San Juan","Nóvita","Nuquí","Quibdó","Río Iró","Río Quito","Riosucio","San José del Palmar","Sipí","Tadó","Unguía","Unión Panamericana"],"Córdoba":["Ayapel","Buenavista","Canalete","Cereté","Chimá","Chinú","Ciénaga de Oro","Cotorra","La Apartada","Lorica","Los Córdobas","Momil","Montelíbano","Montería","Moñitos","Planeta Rica","Pueblo Nuevo","Puerto Escondido","Puerto Libertador","Purísima","Sahagún","San Andrés de Sotavento","San Antero","San Bernardo del Viento","San Carlos","San José de Uré","San Pelayo","Tierralta","Tuchín","Valencia"],"Cundinamarca":["Agua de Dios","Albán","Anapoima","Anolaima","Apulo","Arbeláez","Beltrán","Bituima","Bojacá","Cabrera","Cachipay","Cajicá","Caparrapí","Caqueza","Carmen de Carupa","Chaguaní","Chía","Chipaque","Choachí","Chocontá","Cogua","Cota","Cucunubá","El Colegio","El Peñón","El Rosal","Facatativá","Fómeque","Fosca","Funza","Fúquene","Fusagasugá","Gachalá","Gachancipá","Gachetá","Gama","Girardot","Granada","Guachetá","Guaduas","Guasca","Guataquí","Guatavita","Guayabal de Síquima","Guayabetal","Gutiérrez","Jerusalén","Junín","La Calera","La Mesa","La Palma","La Peña","La Vega","Lenguazaque","Macheta","Madrid","Manta","Medina","Mosquera","Nariño","Nemocón","Nilo","Nimaima","Nocaima","Pacho","Paime","Pandi","Paratebueno","Pasca","Puerto Salgar","Pulí","Quebradanegra","Quetame","Quipile","Ricaurte","San Antonio del Tequendama","San Bernardo","San Cayetano","San Francisco","San Juan de Rioseco","Sasaima","Sesquilé","Sibaté","Silvania","Simijaca","Soacha","Sopó","Subachoque","Suesca","Supatá","Susa","Sutatausa","Tabio","Tausa","Tena","Tenjo","Tibacuy","Tibirita","Tocaima","Tocancipá","Topaipí","Ubalá","Ubaque","Ubaté","Une","Útica","Venecia","Vergara","Vianí","Villagómez","Villapinzón","Villeta","Viotá","Yacopí","Zipacón","Zipaquirá"],"Guainía":["Barranco Minas","Cacahual","Inírida","La Guadalupe","Mapiripana","Morichal","Pana Pana","Puerto Colombia","San Felipe"],"Guaviare":["Calamar","El Retorno","Miraflores","San José del Guaviare"],"Huila":["Acevedo","Agrado","Aipe","Algeciras","Altamira","Baraya","Campoalegre","Colombia","Elías","Garzón","Gigante","Guadalupe","Hobo","Iquira","Isnos","La Argentina","La Plata","Nátaga","Neiva","Oporapa","Paicol","Palermo","Palestina","Pital","Pitalito","Rivera","Saladoblanco","San Agustín","Santa María","Suaza","Tarqui","Tello","Teruel","Tesalia","Timaná","Villavieja","Yaguará"],"La Guajira":["Albania","Barrancas","Dibulla","Distracción","El Molino","Fonseca","Hatonuevo","La Jagua del Pilar","Maicao","Manaure","Riohacha","San Juan del Cesar","Uribia","Urumita","Villanueva"],"Magdalena":["Algarrobo","Aracataca","Ariguaní","Cerro de San Antonio","Ciénaga","Concordia","El Banco","El Piñón","El Retén","Fundación","Guamal","Nueva Granada","Pedraza","Pijiño del Carmen","Pivijay","Plato","Puebloviejo","Remolino","Sabanas de San Ángel","Salamina","San Sebastián de Buenavista","San Zenón","Santa Ana","Santa Bárbara de Pinto","Santa Marta","Sitionuevo","Tenerife","Zapayán","Zona Bananera"],"Meta":["Acacías","Barranca de Upía","Cabuyaro","Castilla la Nueva","Cubarral","Cumaral","El Calvario","El Castillo","El Dorado","Fuente de Oro","Granada","Guamal","La Macarena","La Uribe","Lejanías","Mapiripán","Mesetas","Puerto Concordia","Puerto Gaitán","Puerto Lleras","Puerto López","Puerto Rico","Restrepo","San Carlos de Guaroa","San Juan de Arama","San Juanito","San Martín","Villavicencio","Vista Hermosa"],"Nariño":["Albán","Aldana","Ancuyá","Arboleda","Barbacoas","Belén","Buesaco","Chachagüí","Colón","Consacá","Contadero","Córdoba","Cuaspud","Cumbal","Cumbitara","El Charco","El Peñol","El Rosario","El Tablón de Gómez","El Tambo","Francisco Pizarro","Funes","Guachucal","Guaitarilla","Gualmatán","Iles","Imués","Ipiales","La Cruz","La Florida","La Llanada","La Tola","La Unión","Leiva","Linares","Los Andes","Magüí","Mallama","Mosquera","Nariño","Olaya Herrera","Ospina","Pasto","Policarpa","Potosí","Providencia","Puerres","Pupiales","Ricaurte","Roberto Payán","Samaniego","San Bernardo","San Lorenzo","San Pablo","San Pedro de Cartago","Sandoná","Santa Bárbara","Santacruz","Sapuyes","Taminango","Tangua","Tumaco","Túquerres","Yacuanquer"],"Norte de Santander":["Ábrego","Arboledas","Bochalema","Bucarasica","Cáchira","Cácota","Chinácota","Chitagá","Convención","Cúcuta","Cucutilla","Durania","El Carmen","El Tarra","El Zulia","Gramalote","Hacarí","Herrán","La Esperanza","La Playa","Labateca","Los Patios","Lourdes","Mutiscua","Ocaña","Pamplona","Pamplonita","Puerto Santander","Ragonvalia","Salazar","San Calixto","San Cayetano","Santiago","Sardinata","Silos","Teorama","Tibú","Toledo","Villa Caro","Villa del Rosario"],"Putumayo":["Colón","Mocoa","Orito","Puerto Asís","Puerto Caicedo","Puerto Guzmán","Puerto Leguízamo","San Francisco","San Miguel","Santiago","Sibundoy","Valle del Guamuez","Villagarzón"],"Quindío":["Armenia","Buenavista","Calarcá","Circasia","Córdoba","Filandia","Génova","La Tebaida","Montenegro","Pijao","Quimbaya","Salento"],"Risaralda":["Apía","Balboa","Belén de Umbría","Dosquebradas","Guática","La Celia","La Virginia","Marsella","Mistrató","Pereira","Pueblo Rico","Quinchía","Santa Rosa de Cabal","Santuario"],"San Andrés y Providencia":["Providencia","San Andrés"],"Santander":["Aguada","Albania","Aratoca","Barbosa","Barichara","Barrancabermeja","Betulia","Bolívar","Bucaramanga","Cabrera","California","Capitanejo","Carcasí","Cepitá","Cerrito","Charalá","Charta","Chima","Chipatá","Cimitarra","Concepción","Confines","Contratación","Coromoro","Curití","El Carmen de Chucurí","El Guacamayo","El Peñón","El Playón","Encino","Enciso","Florián","Floridablanca","Galán","Gámbita","Girón","Guaca","Guadalupe","Guapotá","Guavatá","Güepsa","Hato","Jesús María","Jordán","La Belleza","La Paz","Landázuri","Lebríja","Los Santos","Macaravita","Málaga","Matanza","Mogotes","Molagavita","Ocamonte","Oiba","Onzaga","Palmar","Palmas del Socorro","Páramo","Piedecuesta","Pinchote","Puente Nacional","Puerto Parra","Puerto Wilches","Rionegro","Sabana de Torres","San Andrés","San Benito","San Gil","San Joaquín","San José de Miranda","San Miguel","San Vicente de Chucurí","Santa Bárbara","Santa Helena del Opón","Simacota","Socorro","Suaita","Sucre","Suratá","Tona","Valle de San José","Vélez","Vetas","Villanueva","Zapatoca"],"Sucre":["Buenavista","Caimito","Chalán","Colosó","Corozal","Coveñas","El Roble","Galeras","Guaranda","La Unión","Los Palmitos","Majagual","Morroa","Ovejas","Palmito","Sampués","San Benito Abad","San Juan de Betulia","San Luis de Sincé","San Marcos","San Onofre","San Pedro","Santiago de Tolú","Sincelejo","Sucre","Tolú Viejo"],"Tolima":["Alpujarra","Alvarado","Ambalema","Anzoátegui","Armero","Ataco","Cajamarca","Carmen de Apicalá","Casabianca","Chaparral","Coello","Coyaima","Cunday","Dolores","Espinal","Falan","Flandes","Fresno","Guamo","Herveo","Honda","Ibagué","Icononzo","Lérida","Líbano","Mariquita","Melgar","Murillo","Natagaima","Ortega","Palocabildo","Piedras","Planadas","Prado","Purificación","Rioblanco","Roncesvalles","Rovira","Saldaña","San Antonio","San Luis","Santa Isabel","Suárez","Valle de San Juan","Venadillo","Villahermosa","Villarrica"],"Valle del Cauca":["Alcalá","Andalucía","Ansermanuevo","Argelia","Bolívar","Buenaventura","Buga","Bugalagrande","Caicedonia","Cali","Calima","Candelaria","Cartago","Dagua","El Águila","El Cairo","El Cerrito","El Dovio","Florida","Ginebra","Guacarí","Jamundí","La Cumbre","La Unión","La Victoria","Obando","Palmira","Pradera","Restrepo","Riofrío","Roldanillo","San Pedro","Sevilla","Toro","Trujillo","Tuluá","Ulloa","Versalles","Vijes","Yotoco","Yumbo","Zarzal"],"Vaupés":["Carurú","Mitú","Papunaua","Taraira","Villa Nueva","Yavaraté"],"Vichada":["Cumaribo","La Primavera","Puerto Carreño","Santa Rosalía"]};
+
+let ME=null,USERS=[],PERSONS=[],DEL_ID=null;
+const $=id=>document.getElementById(id);
+const showAlert=(id,msg,ms=4000)=>{const e=$(id);e.textContent=msg;e.classList.add("show");if(ms)setTimeout(()=>e.classList.remove("show"),ms);};
+const hideAlert=id=>$(id).classList.remove("show");
+const showErr=(id,msg)=>{const e=$(id);e.textContent="⚠ "+msg;e.classList.add("show");};
+const clearErr=id=>$(id).classList.remove("show");
+const apiGet=async t=>(await fetch(API+"?type="+t)).json();
+const apiPost=async(t,a,p)=>(await fetch(API,{method:"POST",body:JSON.stringify({type:t,action:a,payload:p})})).json();
+
+window.onload=async()=>{
+  const sel=$("f-departamento");
+  Object.keys(COLOMBIA).sort().forEach(d=>{const o=document.createElement("option");o.value=d;o.textContent=d;sel.appendChild(o);});
+  try{const r=await apiGet("users");if(r.ok)USERS=r.data||[];}catch{}
+};
+
+async function doLogin(){
+  const u=$("l-user").value.trim(),p=$("l-pass").value;
+  hideAlert("l-err");
+  if(!u||!p){showAlert("l-err","Ingrese usuario y contraseña.",0);return;}
+  try{
+    const r=await apiGet("users");
+    if(r.ok)USERS=r.data||[];
+    const f=USERS.find(x=>x.username===u&&x.password===p);
+    if(f){
+      ME=f;
+      $("login-screen").style.display="none";
+      $("app").style.display="flex";
+      $("me-name").textContent=ME.nombre;
+      const rb=$("me-role-badge");
+      rb.textContent=ME.role==="admin"?"Administrador":"Operador";
+      rb.style.cssText=ME.role==="admin"?"background:rgba(245,200,48,.13);color:#F5C830;":"background:rgba(23,71,160,.13);color:#60A5FA;";
+      buildNav();showView("reg");loadPersons();
+    }else showAlert("l-err","Usuario o contraseña incorrectos.",0);
+  }catch{showAlert("l-err","Error de conexión con el servidor.",0);}
+}
+
+function logout(){
+  ME=null;USERS=[];PERSONS=[];
+  $("app").style.display="none";
+  $("login-screen").style.display="flex";
+  $("l-user").value="";$("l-pass").value="";
+  hideAlert("l-err");
+}
+
+function buildNav(){
+  const nav=$("nav");nav.innerHTML="";
+  const items=[{id:"reg",ico:"📝",lbl:"Registrar Persona"},{id:"planilla",ico:"📋",lbl:"Planilla de Registros"},...(ME.role==="admin"?[{id:"users",ico:"👥",lbl:"Gestión de Usuarios"}]:[]),{id:"profile",ico:"⚙️",lbl:"Mi Perfil"}];
+  items.forEach(n=>{
+    const b=document.createElement("button");
+    b.className="nav-btn";b.id="nav-"+n.id;
+    b.innerHTML=`<span>${n.ico}</span><span>${n.lbl}</span>`;
+    b.onclick=()=>{
+      showView(n.id);
+      if(n.id==="planilla")loadPersons();
+      if(n.id==="users")loadUsers();
+      if(n.id==="profile"){$("pr-nombre").value=ME.nombre;$("pr-user").value=ME.username;const rt=$("pr-role-txt");rt.textContent=ME.role==="admin"?"Administrador":"Operador";rt.style.color=ME.role==="admin"?"#F5C830":"#60A5FA";}
+    };
+    nav.appendChild(b);
+  });
+}
+
+function showView(id){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+  $("v-"+id).classList.add("active");
+  const nb=$("nav-"+id);if(nb)nb.classList.add("active");
+}
+
+function onDeptChange(){
+  const d=$("f-departamento").value,sel=$("f-municipio");
+  sel.innerHTML='<option value="">— Seleccionar municipio —</option>';
+  if(d){sel.disabled=false;(COLOMBIA[d]||[]).sort().forEach(m=>{const o=document.createElement("option");o.value=m;o.textContent=m;sel.appendChild(o);});}
+  else sel.disabled=true;
+}
+
+function autoFill(field,val){
+  if(!val.trim())return;
+  const tipo=$("f-tipodoc").value;
+  let m=null;
+  if(field==="numerodoc")m=PERSONS.find(p=>String(p.numeroDoc)===val&&p.tipoDoc===tipo);
+  else if(field==="nombres"){const r=PERSONS.filter(p=>String(p.nombres).toLowerCase().trim()===val.toLowerCase().trim());if(r.length===1)m=r[0];}
+  else if(field==="apellidos"){const r=PERSONS.filter(p=>String(p.apellidos).toLowerCase().trim()===val.toLowerCase().trim());if(r.length===1)m=r[0];}
+  if(m){
+    $("f-tipodoc").value=m.tipoDoc||"cedula";
+    $("f-numerodoc").value=String(m.numeroDoc||"");
+    $("f-nombres").value=String(m.nombres||"");
+    $("f-apellidos").value=String(m.apellidos||"");
+    $("f-departamento").value=String(m.departamento||"");
+    onDeptChange();
+    setTimeout(()=>{$("f-municipio").value=String(m.municipio||"");},60);
+    $("f-direccion").value=String(m.direccion||"");
+    $("f-telefono").value=String(m.telefono||"");
+    $("f-correo").value=String(m.correo||"");
+    showAlert("r-info","✓ Datos completados automáticamente desde el registro existente.",5000);
+  }
+}
+
+function getForm(){return{tipoDoc:$("f-tipodoc").value,numeroDoc:$("f-numerodoc").value.trim(),nombres:$("f-nombres").value.trim(),apellidos:$("f-apellidos").value.trim(),departamento:$("f-departamento").value,municipio:$("f-municipio").value,direccion:$("f-direccion").value.trim(),telefono:$("f-telefono").value.trim(),correo:$("f-correo").value.trim()};}
+
+function validateForm(f){
+  const e={};
+  if(!f.nombres)e.nombres="Campo obligatorio";
+  if(!f.apellidos)e.apellidos="Campo obligatorio";
+  if(!f.numeroDoc)e.numerodoc="Campo obligatorio";
+  else{if(f.tipoDoc==="cedula"&&!/^\d{5,10}$/.test(f.numeroDoc))e.numerodoc="La cédula debe tener entre 5 y 10 dígitos";if(f.tipoDoc==="ti"&&!/^\d{10,11}$/.test(f.numeroDoc))e.numerodoc="La tarjeta de identidad debe tener 10 u 11 dígitos";}
+  if(!f.departamento)e.departamento="Seleccione un departamento";
+  if(!f.municipio)e.municipio="Seleccione un municipio";
+  if(!f.direccion)e.direccion="Campo obligatorio";
+  if(!f.telefono)e.telefono="Campo obligatorio";
+  else if(!/^\d{10}$/.test(f.telefono))e.telefono="Debe tener exactamente 10 dígitos";
+  if(!f.correo)e.correo="Campo obligatorio";
+  else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.correo))e.correo="Correo no válido";
+  return e;
+}
+
+async function doReg(){
+  const f=getForm();
+  const errs=validateForm(f);
+  ["nombres","apellidos","numerodoc","departamento","municipio","direccion","telefono","correo"].forEach(clearErr);
+  if(Object.keys(errs).length){Object.entries(errs).forEach(([k,v])=>showErr("e-"+k,v));showAlert("r-er","⚠ Corrija los errores marcados antes de continuar.",5000);return;}
+  $("r-loading").style.display="block";hideAlert("r-ok");hideAlert("r-er");
+  try{
+    const now=new Date().toISOString();
+    const ex=PERSONS.find(p=>String(p.numeroDoc)===f.numeroDoc&&p.tipoDoc===f.tipoDoc);
+    const r=await apiPost("persons","save",{...f,id:ex?.id||Date.now().toString(),cre:ex?.cre||now,por:ex?.por||ME.username,actPor:ME.username});
+    if(r.ok){showAlert("r-ok",ex?"✓ Registro actualizado exitosamente.":"✓ Persona registrada exitosamente.");clearForm();await loadPersons();}
+    else showAlert("r-er","Error al guardar: "+(r.error||"intente de nuevo"),5000);
+  }catch{showAlert("r-er","Error de conexión al guardar.",5000);}
+  $("r-loading").style.display="none";
+}
+
+function clearForm(){
+  $("f-tipodoc").value="cedula";$("f-numerodoc").value="";$("f-nombres").value="";$("f-apellidos").value="";$("f-departamento").value="";$("f-municipio").innerHTML='<option value="">— Seleccionar municipio —</option>';$("f-municipio").disabled=true;$("f-direccion").value="";$("f-telefono").value="";$("f-correo").value="";
+  ["nombres","apellidos","numerodoc","departamento","municipio","direccion","telefono","correo"].forEach(clearErr);
+  hideAlert("r-ok");hideAlert("r-er");hideAlert("r-info");
+}
+
+async function loadPersons(){
+  try{const r=await apiGet("persons");if(r.ok)PERSONS=r.data||[];}catch{}
+  renderTable();
+}
+
+function renderTable(){
+  const q=($("p-search")||{value:""}).value.toLowerCase();
+  const fl=PERSONS.filter(p=>!q||[p.nombres,p.apellidos,p.numeroDoc,p.correo,p.municipio,p.departamento,p.telefono].some(x=>String(x||"").toLowerCase().includes(q)));
+  $("p-count").textContent=PERSONS.length+" persona"+(PERSONS.length!==1?"s":"")+" registrada"+(PERSONS.length!==1?"s":"");
+  const tbody=$("p-tbody");
+  if(!PERSONS.length){tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:48px 0;color:#5A7A9A;">📋 No hay personas registradas aún.</td></tr>`;return;}
+  if(!fl.length){tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:32px 0;color:#5A7A9A;">Sin resultados.</td></tr>`;return;}
+  tbody.innerHTML=fl.map(p=>`<tr><td><span class="badge ${p.tipoDoc==="cedula"?"badge-cc":"badge-ti"}">${p.tipoDoc==="cedula"?"CC":"TI"}</span></td><td style="font-family:monospace;">${p.numeroDoc||""}</td><td style="font-weight:500;">${p.nombres||""}</td><td>${p.apellidos||""}</td><td style="font-size:12px;color:#5A7A9A;">${p.departamento||""}</td><td>${p.municipio||""}</td><td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#5A7A9A;">${p.direccion||""}</td><td style="font-family:monospace;font-size:12px;">${p.telefono||""}</td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;">${p.correo||""}</td><td style="font-size:11px;color:#5A7A9A;white-space:nowrap;">${p.cre?new Date(p.cre).toLocaleDateString("es-CO"):"—"}</td></tr>`).join("");
+}
+
+function exportCSV(){
+  if(!PERSONS.length)return;
+  const H=["Tipo Doc","Número Doc","Nombres","Apellidos","Departamento","Municipio","Dirección","Teléfono","Correo","Fecha","Registrado Por"];
+  const rows=PERSONS.map(p=>[p.tipoDoc==="cedula"?"Cédula":"Tarjeta de Identidad",p.numeroDoc,p.nombres,p.apellidos,p.departamento,p.municipio,p.direccion,p.telefono,p.correo,p.cre?new Date(p.cre).toLocaleDateString("es-CO"):"—",p.por||"—"]);
+  const csv=[H,...rows].map(r=>r.map(x=>`"${String(x||"").replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"}));a.download=`registro_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+}
+
+async function loadUsers(){
+  try{const r=await apiGet("users");if(r.ok)USERS=r.data||[];}catch{}
+  renderUsers();
+}
+
+function renderUsers(){
+  $("u-tbody").innerHTML=USERS.map(u=>`<tr><td style="font-weight:500;">${u.nombre||""}</td><td style="font-family:monospace;">${u.username||""}</td><td><span class="badge ${u.role==="admin"?"badge-admin":"badge-op"}">${u.role==="admin"?"Administrador":"Operador"}</span></td><td style="text-align:center;">${u.id!=="u1"&&u.id!==ME.id?`<button class="btn-red" style="padding:5px 14px;font-size:12px;" onclick="openModal('${u.id}')">Eliminar</button>`:`<span style="color:#5A7A9A;font-size:12px;">${u.id==="u1"?"Admin principal":"(Tú mismo)"}</span>`}</td></tr>`).join("");
+}
+
+async function addUser(){
+  const nombre=$("nu-nombre").value.trim(),username=$("nu-user").value.trim(),password=$("nu-pass").value,role=$("nu-role").value;
+  hideAlert("u-ok");hideAlert("u-er");
+  if(!nombre||!username||!password){showAlert("u-er","Todos los campos son obligatorios.",0);return;}
+  if(password.length<6){showAlert("u-er","La contraseña debe tener al menos 6 caracteres.",0);return;}
+  if(USERS.find(u=>u.username===username)){showAlert("u-er","Ese nombre de usuario ya existe.",0);return;}
+  $("u-loading").style.display="block";
+  try{
+    const r=await apiPost("users","save",{id:Date.now().toString(),nombre,username,password,role});
+    if(r.ok){await loadUsers();$("nu-nombre").value="";$("nu-user").value="";$("nu-pass").value="";$("nu-role").value="operator";showAlert("u-ok","✓ Usuario creado exitosamente.");}
+    else showAlert("u-er","Error: "+(r.error||"intente de nuevo"),0);
+  }catch{showAlert("u-er","Error de conexión.",0);}
+  $("u-loading").style.display="none";
+}
+
+function openModal(id){DEL_ID=id;$("modal").classList.add("show");}
+function closeModal(){DEL_ID=null;$("modal").classList.remove("show");}
+async function confirmDel(){
+  if(!DEL_ID){closeModal();return;}
+  if(DEL_ID==="u1"||DEL_ID===ME.id){showAlert("u-er","No se puede eliminar este usuario.",0);closeModal();return;}
+  try{await apiPost("users","delete",{id:DEL_ID});await loadUsers();showAlert("u-ok","✓ Usuario eliminado.");}
+  catch{showAlert("u-er","Error al eliminar.",0);}
+  closeModal();
+}
+
+async function updProfile(){
+  const nombre=$("pr-nombre").value.trim(),username=$("pr-user").value.trim();
+  hideAlert("pr-ok");hideAlert("pr-er");
+  if(!nombre||!username){showAlert("pr-er","Nombre y usuario son obligatorios.",0);return;}
+  if(username!==ME.username&&USERS.find(u=>u.username===username)){showAlert("pr-er","Ese usuario ya existe.",0);return;}
+  try{
+    const r=await apiPost("users","update",{id:ME.id,nombre,username});
+    if(r.ok){ME.nombre=nombre;ME.username=username;$("me-name").textContent=nombre;showAlert("pr-ok","✓ Perfil actualizado.");}
+    else showAlert("pr-er","Error al actualizar.",0);
+  }catch{showAlert("pr-er","Error de conexión.",0);}
+}
+
+async function changePw(){
+  const cur=$("pw-cur").value,n1=$("pw-n1").value,n2=$("pw-n2").value;
+  hideAlert("pw-ok");hideAlert("pw-er");
+  if(!cur||!n1||!n2){showAlert("pw-er","Todos los campos son obligatorios.",0);return;}
+  if(cur!==ME.password){showAlert("pw-er","La contraseña actual es incorrecta.",0);return;}
+  if(n1!==n2){showAlert("pw-er","Las contraseñas no coinciden.",0);return;}
+  if(n1.length<6){showAlert("pw-er","Mínimo 6 caracteres.",0);return;}
+  try{
+    const r=await apiPost("users","update",{id:ME.id,password:n1});
+    if(r.ok){ME.password=n1;$("pw-cur").value="";$("pw-n1").value="";$("pw-n2").value="";showAlert("pw-ok","✓ Contraseña actualizada.");}
+    else showAlert("pw-er","Error al actualizar.",0);
+  }catch{showAlert("pw-er","Error de conexión.",0);}
+}
+</script>
+</body>
+</html>
